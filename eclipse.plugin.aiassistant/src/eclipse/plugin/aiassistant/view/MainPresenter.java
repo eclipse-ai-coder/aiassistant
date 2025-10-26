@@ -651,7 +651,10 @@ public class MainPresenter {
 		// TODO: Find a better way to do this...
 		for (int i = 0; i < chatConversations.size(); i++) {
 			final int index = i;
-			Eclipse.getDisplay().timerExec(Constants.STATE_RESTORE_REPLAY_DELAY_MS, () -> {
+
+			// Skip delay if there's nothing to replay
+			final int delay = !chatConversations.get(index).isEmpty() ? Constants.STATE_RESTORE_REPLAY_DELAY_MS : 0;
+			Eclipse.getDisplay().timerExec(delay, () -> {
 				// NOTE: This will also update the busy status, the buttons state, and scroll to bottom
 				replayMessages(chatConversations.get(index).getMessages(), index, true);
 			});
