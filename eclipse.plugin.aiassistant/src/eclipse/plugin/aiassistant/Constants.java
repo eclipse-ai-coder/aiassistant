@@ -113,6 +113,6 @@ public final class Constants {
 
 	// Timing delays for tab-related UI synchronization hacks.
 	// NOTE: These delays are used to ensure UI components are fully initialized before replaying messages.
-	public static final int CLONE_TAB_REPLAY_DELAY_MS = 2000;
+	public static final int TAB_REPLAY_DELAY_MS = 2000;
 	public static final int STATE_RESTORE_REPLAY_DELAY_MS = 5000;
 }

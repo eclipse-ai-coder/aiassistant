@@ -104,6 +104,7 @@ public class MainPresenter {
 		ChatConversation newConversation = new ChatConversation();
 		chatConversations.add(newConversation);
 
+		// Create synchronously to be sure it is there for out replay
 		performOnMainViewAsync(mainView -> { mainView.createNewTab(newConversation); });
 
 		// Switch to the new tab
@@ -112,6 +113,39 @@ public class MainPresenter {
 
 		performOnMainViewAsync(mainView -> { mainView.updateButtonStates(); });
 		onScrollToBottom();
+	}
+
+	/**
+	 * Creates a new chat tab with a predefined task name.
+	 *
+	 * @param taskName the name of the task for the new tab
+	 */
+	public void onNewTab(String taskName) {
+
+		// We will notify that we are busy until the delayed pushMessage call resets the status
+		performOnMainViewAsync(mainView -> { mainView.setBusyWait(true); });
+
+		// Add the initial task message as a markdown header and set the title
+		ChatConversation newConversation = new ChatConversation();
+		newConversation.push(new ChatMessage(ChatRole.USER, "# Task: " + taskName));
+		newConversation.setTitle(taskName);
+		chatConversations.add(newConversation);
+
+		// Create synchronously to be sure it is there for the replay
+		performOnMainViewAsync(mainView -> { mainView.createNewTab(newConversation); });
+
+		// Set current tab top last
+		currentTabIndex = chatConversations.size() - 1;
+
+		// Reset the user history
+		userMessageHistory.resetPosition();
+
+		// Schedule the replayMessages call for 2 seconds in the future
+		// TODO: Find a better way to do this...
+		Eclipse.getDisplay().timerExec(Constants.TAB_REPLAY_DELAY_MS, () -> {
+			// NOTE: This will also update the busy status, the buttons state, and scroll to bottom
+			replayMessages(newConversation.getMessages(), currentTabIndex, true);
+		});
 	}
 
 	/**
@@ -124,13 +158,13 @@ public class MainPresenter {
 		// We will notify that we are busy until the delayed replayMessages call resets the status
 		performOnMainViewAsync(mainView -> { mainView.setBusyWait(true); });
 
-		// Add a deep copy of the current conversation
+		// Add a deep copy of the current conversation and set the title
 		ChatConversation clonedConversation = new ChatConversation();
 		clonedConversation.copyFrom(getCurrentConversation());
 		clonedConversation.setTitle("Copy of " + getCurrentConversation().getTitle());
 		chatConversations.add(clonedConversation);
 
-		// Create synchronously to be sure it is there for out replay
+		// Create synchronously to be sure it is there for the replay
 		performOnMainViewAsync(mainView -> { mainView.createNewTab(clonedConversation); });
 
 		// Set current tab top last
@@ -139,9 +173,9 @@ public class MainPresenter {
 		// Reset the user history
 		userMessageHistory.resetPosition();
 
-		// Schedule the actual replay for 2 seconds in the future
+		// Schedule the replayMessages call for 2 seconds in the future
 		// TODO: Find a better way to do this...
-		Eclipse.getDisplay().timerExec(Constants.CLONE_TAB_REPLAY_DELAY_MS, () -> {
+		Eclipse.getDisplay().timerExec(Constants.TAB_REPLAY_DELAY_MS, () -> {
 			// NOTE: This will also update the busy status, the buttons state, and scroll to bottom
 			replayMessages(clonedConversation.getMessages(), currentTabIndex, true);
 		});
