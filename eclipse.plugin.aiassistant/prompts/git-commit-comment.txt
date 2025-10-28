@@ -1,7 +1,7 @@
 # Task: <taskname>
+Create a Git commit comment from the provided Git patch. Respond with a single line of 72 characters or less, wrapped in a markdown code block:
 <code>diff
 <project_diff>
 <code>
 <usertext>
-Create a Git commit comment from the provided Git patch. Ensure the commit message is a single line that does not exceed 72 characters total. Return the commit comment wrapped in a markdown code block.
 <<switch-roles>>

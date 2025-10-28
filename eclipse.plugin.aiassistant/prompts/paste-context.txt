@@ -1,4 +1,4 @@
-Review the provided snippet to establish context for the upcoming task(s):
+Review the provided snippet to establish context for the given task:
 <code>
 <clipboard>
 <code>

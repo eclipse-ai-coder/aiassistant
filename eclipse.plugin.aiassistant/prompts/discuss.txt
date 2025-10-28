@@ -1,8 +1,8 @@
 # Task: <taskname>
-Comprehend this source code<if(selection)> snippet<endif> from<if(selection)> <lines> of<endif> `<filename>` by analyzing its objectives and design choices:
+Comprehend this source code<if(selection)> snippet<endif> from<if(selection)> <lines> of<endif> `<filename>` by analyzing its objectives and design choices. Be prepared to discuss any aspects of the code in detail:
 <code><tag>
 <if(selection)><selection><else><document><endif>
 <code>
-<if(usertext)><usertext><else>Be prepared to discuss any aspects of the code in detail and then simply respond with 'Ready'.<endif>
+<if(usertext)><usertext><else>Simply respond with 'Ready' and await the user's first question.<endif>
 <<switch-roles>>
 <if(!usertext)>Ready<endif>
