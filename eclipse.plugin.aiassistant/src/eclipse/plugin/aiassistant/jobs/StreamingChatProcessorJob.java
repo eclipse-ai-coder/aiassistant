@@ -6,16 +6,26 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import eclipse.plugin.aiassistant.Activator;
 import eclipse.plugin.aiassistant.Logger;
+import eclipse.plugin.aiassistant.accept_reject.CompareFileStoreEditorInput;
+import eclipse.plugin.aiassistant.accept_reject.UnifiedDiffParser;
 import eclipse.plugin.aiassistant.chat.ChatConversation;
 import eclipse.plugin.aiassistant.chat.ChatMessage;
 import eclipse.plugin.aiassistant.network.OpenAiApiClient;
+import eclipse.plugin.aiassistant.utility.Eclipse;
 import eclipse.plugin.aiassistant.view.MainPresenter;
 
 /**
@@ -121,11 +131,55 @@ public class StreamingChatProcessorJob extends Job implements Subscriber<String>
 
 	/**
 	 * Completes the message processing and updates the UI.
+	 * If the response contains a diff patch, opens a compare editor showing the original file
+	 * on the left and the patched file on the right.
 	 */
 	@Override
 	public void onComplete() {
 		mainPresenter.endMessageFromAssistant();
 		subscription.cancel();
+
+		if (message != null && message.getContent() != null) {
+			String patch = UnifiedDiffParser.extractFirstDiffPatch(message.getContent());
+			if (patch != null && !patch.isBlank()) {
+				String filePath = UnifiedDiffParser.extractFilePathFromPatch(patch);
+				if (filePath != null) {
+					IFileStore fileStore = resolveFileStore(filePath);
+					if (fileStore != null) {
+						Eclipse.runOnUIThreadAsync(() -> {
+							try {
+								CompareFileStoreEditorInput.open(fileStore, fileStore, "Original", "Patched", patch);
+							} catch (Exception e) {
+								Logger.error("Failed to open compare editor for patch", e);
+							}
+						});
+					} else {
+						Logger.warning("Could not resolve file store for path: " + filePath);
+					}
+				}
+			}
+		}
+	}
+
+	private IFileStore resolveFileStore(String filePath) {
+		try {
+			// Try to find in workspace first
+			IPath path = new Path(filePath);
+			IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+			for (IProject project : projects) {
+				if (project.isOpen()) {
+					IFile file = project.getFile(path);
+					if (file.exists()) {
+						return EFS.getStore(file.getLocationURI());
+					}
+				}
+			}
+			// Fall back to local filesystem
+			return EFS.getLocalFileSystem().getStore(new java.io.File(filePath).toURI());
+		} catch (Exception e) {
+			Logger.error("Failed to resolve file store for " + filePath, e);
+			return null;
+		}
 	}
 
 }
