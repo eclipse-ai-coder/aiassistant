@@ -125,7 +125,9 @@ public class StreamingChatProcessorJob extends Job implements Subscriber<String>
 			Logger.info("CANCELLED");
 		}
 		else {
-			Logger.error(throwable.getMessage());
+			String errorMsg = throwable.getMessage() != null ? throwable.getMessage() : "Unknown error";
+			Logger.error(errorMsg);
+			Eclipse.runOnUIThreadAsync(() -> Eclipse.showErrorDialog("AI Assistant Error", errorMsg));
 		}
 	}
 
@@ -150,11 +152,15 @@ public class StreamingChatProcessorJob extends Job implements Subscriber<String>
 							try {
 								CompareFileStoreEditorInput.open(fileStore, fileStore, "Original", "Patched", patch);
 							} catch (Exception e) {
-								Logger.error("Failed to open compare editor for patch", e);
+								String errorMsg = "Failed to open compare editor: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+								Logger.error(errorMsg, e);
+								Eclipse.showErrorDialog("Compare Editor Error", errorMsg);
 							}
 						});
 					} else {
-						Logger.warning("Could not resolve file store for path: " + filePath);
+						String errorMsg = "Could not resolve file store for path: " + filePath;
+						Logger.warning(errorMsg);
+						Eclipse.runOnUIThreadAsync(() -> Eclipse.showErrorDialog("File Not Found", errorMsg));
 					}
 				}
 			}
@@ -177,7 +183,9 @@ public class StreamingChatProcessorJob extends Job implements Subscriber<String>
 			// Fall back to local filesystem
 			return EFS.getLocalFileSystem().getStore(new java.io.File(filePath).toURI());
 		} catch (Exception e) {
-			Logger.error("Failed to resolve file store for " + filePath, e);
+			String errorMsg = "Failed to resolve file store for " + filePath + ": " + (e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+			Logger.error(errorMsg, e);
+			Eclipse.runOnUIThreadAsync(() -> Eclipse.showErrorDialog("File Resolution Error", errorMsg));
 			return null;
 		}
 	}

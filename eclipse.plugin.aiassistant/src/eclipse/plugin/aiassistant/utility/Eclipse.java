@@ -515,6 +515,19 @@ public class Eclipse {
 	}
 
 	/**
+	 * Creates and shows an error dialog with an OK button.
+	 *
+	 * @param title the dialog title
+	 * @param message the dialog message
+	 */
+	public static void showErrorDialog(String title, String message) {
+		MessageBox messageBox = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+		messageBox.setText(title);
+		messageBox.setMessage(message);
+		messageBox.open();
+	}
+
+	/**
 	 * Creates and shows a confirmation dialog with Yes/No buttons.
 	 *
 	 * @param title the dialog title
