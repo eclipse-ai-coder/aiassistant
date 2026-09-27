@@ -11,6 +11,8 @@ import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -513,6 +515,19 @@ public class Eclipse {
 	}
 
 	/**
+	 * Creates and shows an error dialog with an OK button.
+	 *
+	 * @param title the dialog title
+	 * @param message the dialog message
+	 */
+	public static void showErrorDialog(String title, String message) {
+		MessageBox messageBox = new MessageBox(getShell(), SWT.OK | SWT.ICON_ERROR);
+		messageBox.setText(title);
+		messageBox.setMessage(message);
+		messageBox.open();
+	}
+
+	/**
 	 * Creates and shows a confirmation dialog with Yes/No buttons.
 	 *
 	 * @param title the dialog title
@@ -700,12 +715,36 @@ public class Eclipse {
 	}
 
 	/**
-	 * Returns the compiler messages for the active file with the given severity.
+	 * Returns the IFileStore for the given IFile.
 	 *
-	 * @param activeFile the active file
-	 * @param severity   the severity of the compiler messages to return
-	 * @return the compiler messages
+	 * @param file the IFile
+	 * @return the IFileStore, or null if not available
 	 */
+	public static IFileStore getFileStore(IFile file) {
+		if (file == null) {
+			return null;
+		}
+		try {
+			return EFS.getStore(file.getLocationURI());
+		} catch (Exception e) {
+			Logger.error("Failed to get FileStore for " + file.getFullPath(), e);
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the active file store from the active text editor.
+	 *
+	 * @return the active IFileStore, or null if not available
+	 */
+	public static IFileStore getActiveFileStore() {
+		ITextEditor textEditor = getActiveTextEditor();
+		if (textEditor == null) {
+			return null;
+		}
+		IFile activeFile = getActiveFile(textEditor);
+		return getFileStore(activeFile);
+	}
 	private static String getCompilerMessages(IFile activeFile, int severity) {
 		StringBuilder compilerMessages = new StringBuilder();
 		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();

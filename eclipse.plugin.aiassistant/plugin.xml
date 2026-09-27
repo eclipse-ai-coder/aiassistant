@@ -130,7 +130,7 @@
            locationURI="popup:#AbstractTextEditorContext?after=additions">
         <menu
               icon="icons/Robot.png"
-              label="AI Assistant">
+              label="AI Assistant (EGP's fork)">
            <command
                  commandId="eclipse.plugin.aiassistant.AddMessage"
                  icon="icons/Add.png"
@@ -301,7 +301,7 @@
      <menuContribution locationURI="popup:team.main?after=org.eclipse.egit.ui.team.ShowRepositoriesView">
         <menu
               icon="icons/Robot.png"
-              label="AI Assistant"
+              label="AI Assistant (EGP's fork)"
               id="eclipse.plugin.aiassistant.team.menu">
            <command
                 commandId="eclipse.plugin.aiassistant.AddProjectDiff"
@@ -343,7 +343,7 @@
     <page
       class="eclipse.plugin.aiassistant.preferences.PreferencePage"
       id="eclipse.plugin.aiassistant.preferences.PreferencePage"
-      name="AI Assistant">
+      name="AI Assistant (EGP's fork)">
     </page>
     <page
       id="eclipse.plugin.aiassistant.preferences.PromptTemplatesPreferencePage"
